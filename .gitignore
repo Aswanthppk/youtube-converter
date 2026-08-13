@@ -1,0 +1,27 @@
+# Exclude downloads folder and downloaded audio files
+downloads/
+downloads/*
+*.mp3
+*.m4a
+*.webm
+*.mp4
+*.part
+
+# Node & Frontend build dependencies
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Python cache & environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+
+# Environment variables & local configuration
+.env
+.DS_Store
+Thumbs.db
