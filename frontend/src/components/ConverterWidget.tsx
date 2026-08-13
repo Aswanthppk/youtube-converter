@@ -195,7 +195,7 @@ export const ConverterWidget: React.FC<ConverterWidgetProps> = ({ onConversionSu
       {info && (
         <div className="video-preview-box">
           <div className="preview-img-container">
-            <img src={info.thumbnail} alt={info.title} />
+            <img src={info.thumbnail} alt={info.title} width="120" height="72" fetchPriority="high" />
             <span className="duration-tag">{info.duration_str}</span>
           </div>
           <div className="preview-info">

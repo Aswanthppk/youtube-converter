@@ -500,6 +500,8 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 16px;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
 }
 
 .history-card-item {
