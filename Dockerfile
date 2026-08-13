@@ -30,4 +30,5 @@ RUN mkdir -p downloads
 
 EXPOSE 5000
 
-CMD exec gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --threads 8 --timeout 120 app:app
+# Use sh -c to ensure environment variable $PORT is expanded properly by Railway
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --threads 8 --timeout 120 app:app"]
