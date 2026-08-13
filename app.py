@@ -1,6 +1,7 @@
 import os
 import sys
 import uuid
+import time
 import threading
 from typing import Dict, Any
 from flask import Flask, request, jsonify, send_from_directory, send_file
@@ -14,6 +15,10 @@ FRONTEND_DIST = os.path.abspath(os.path.join(BASE_DIR, 'frontend', 'dist'))
 DOWNLOAD_DIR = os.path.abspath(os.path.join(BASE_DIR, 'downloads'))
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+# 24-Hour Cleanup Configurations
+CLEANUP_INTERVAL_SECONDS = 3600  # Run cleanup check every 1 hour
+MAX_FILE_AGE_SECONDS = 86400     # 24 hours in seconds (24 * 3600)
+
 # Use frontend/dist if built, otherwise fall back to static
 if os.path.exists(FRONTEND_DIST):
     app = Flask(__name__, static_folder=os.path.join(FRONTEND_DIST, 'assets'), static_url_path='/assets')
@@ -25,6 +30,49 @@ CORS(app)
 # In-memory task tracker
 tasks: Dict[str, Dict[str, Any]] = {}
 tasks_lock = threading.Lock()
+
+
+def cleanup_old_downloads(max_age_seconds: int = MAX_FILE_AGE_SECONDS):
+    """Deletes any files in DOWNLOAD_DIR that are older than max_age_seconds (24 hours)."""
+    now = time.time()
+    if not os.path.exists(DOWNLOAD_DIR):
+        return 0
+
+    deleted_count = 0
+    for filename in os.listdir(DOWNLOAD_DIR):
+        filepath = os.path.join(DOWNLOAD_DIR, filename)
+        if os.path.isfile(filepath):
+            try:
+                file_age = now - os.path.getmtime(filepath)
+                if file_age > max_age_seconds:
+                    os.remove(filepath)
+                    deleted_count += 1
+                    print(f"[Cleanup Scheduler] Purged old file (>24h): {filename} (Age: {round(file_age / 3600, 1)} hrs)")
+            except Exception as e:
+                print(f"[Cleanup Scheduler Error] Failed to delete {filename}: {e}")
+
+    if deleted_count > 0:
+        print(f"[Cleanup Scheduler] Total files purged in run: {deleted_count}")
+    return deleted_count
+
+
+def start_cleanup_scheduler():
+    """Background daemon thread to periodically purge files older than 24 hours."""
+    def worker():
+        while True:
+            try:
+                cleanup_old_downloads()
+            except Exception as e:
+                print(f"[Cleanup Thread Exception] {e}")
+            time.sleep(CLEANUP_INTERVAL_SECONDS)
+
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    print(f"[Cleanup Scheduler] Initialized. Monitoring '{DOWNLOAD_DIR}' (Purging files > 24 hours old).")
+
+
+# Launch 24-hour cleanup background thread when server starts
+start_cleanup_scheduler()
 
 
 def run_conversion_task(task_id: str, url: str, quality: str):
@@ -181,10 +229,20 @@ def get_history():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/cleanup', methods=['POST'])
+def trigger_cleanup():
+    """Manual endpoint to trigger 24-hour cleanup on demand."""
+    try:
+        purged = cleanup_old_downloads(max_age_seconds=MAX_FILE_AGE_SECONDS)
+        return jsonify({'success': True, 'files_purged': purged})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"\n========================================================")
-    print(f" SonicWave React Web App is running at:")
+    print(f" youmusic.store Web App is running at:")
     print(f" http://127.0.0.1:{port}")
     print(f"========================================================\n")
     app.run(host='0.0.0.0', port=port, debug=True)
