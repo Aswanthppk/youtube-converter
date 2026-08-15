@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link2, Clipboard, Wand2, Download, RotateCcw, AlertCircle, Loader2, User, Gauge, Clock, CheckCircle } from 'lucide-react';
 
+import { HistoryFile } from './RecentDownloadsGrid';
+
 interface VideoInfo {
   id: string;
   title: string;
@@ -23,7 +25,7 @@ interface ConversionTask {
 }
 
 interface ConverterWidgetProps {
-  onConversionSuccess: () => void;
+  onConversionSuccess: (file: HistoryFile) => void;
 }
 
 export const ConverterWidget: React.FC<ConverterWidgetProps> = ({ onConversionSuccess }) => {
@@ -117,7 +119,13 @@ export const ConverterWidget: React.FC<ConverterWidgetProps> = ({ onConversionSu
           if (data.task.status === 'finished') {
             clearInterval(interval);
             setLoading(false);
-            onConversionSuccess();
+            if (data.task.result) {
+              onConversionSuccess({
+                filename: data.task.result.filename,
+                filesize_mb: data.task.result.filesize_mb,
+                modified_time: Math.floor(Date.now() / 1000)
+              });
+            }
           } else if (data.task.status === 'error') {
             clearInterval(interval);
             setLoading(false);
@@ -242,8 +250,8 @@ export const ConverterWidget: React.FC<ConverterWidgetProps> = ({ onConversionSu
           <div className="result-file-size">{task.result.filesize_mb} MB • Studio Quality MP3</div>
 
           {/* Integrated HTML5 Audio Player for Direct Song Playback */}
-          <div style={{ margin: '18px 0 20px', padding: '14px', backgroundColor: '#ffffff', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb', marginBottom: '8px', textAlign: 'left' }}>
+          <div style={{ margin: '18px 0 20px', padding: '14px', backgroundColor: '#ffffff', borderRadius: '14px', border: '1px solid #f4f4f5', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#e50914', marginBottom: '8px', textAlign: 'left' }}>
               🎵 STREAM AUDIO PLAYER
             </div>
             <audio

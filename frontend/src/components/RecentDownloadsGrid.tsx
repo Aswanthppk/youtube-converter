@@ -9,10 +9,10 @@ export interface HistoryFile {
 
 interface RecentDownloadsGridProps {
   files: HistoryFile[];
-  onRefresh: () => void;
+  onClear: () => void;
 }
 
-export const RecentDownloadsGrid: React.FC<RecentDownloadsGridProps> = ({ files, onRefresh }) => {
+export const RecentDownloadsGrid: React.FC<RecentDownloadsGridProps> = ({ files, onClear }) => {
   const [playingFilename, setPlayingFilename] = useState<string | null>(null);
 
   const togglePlay = (filename: string) => {
@@ -26,17 +26,19 @@ export const RecentDownloadsGrid: React.FC<RecentDownloadsGridProps> = ({ files,
   return (
     <section id="history" className="history-container">
       <div className="section-head-row">
-        <h2>Recent Songs & Downloads</h2>
-        <button onClick={onRefresh} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: 13 }}>
-          <RotateCw size={14} /> Refresh List
-        </button>
+        <h2>Your Converted Songs</h2>
+        {files.length > 0 && (
+          <button onClick={onClear} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: 13 }}>
+            <RotateCw size={14} /> Clear History
+          </button>
+        )}
       </div>
 
       {files.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#64748b', background: '#ffffff', borderRadius: 16, border: '1px dashed #cbd5e1' }}>
-          <Music size={32} style={{ margin: '0 auto 12px', display: 'block', color: '#94a3b8' }} />
-          <p style={{ fontWeight: 600 }}>No songs converted yet.</p>
-          <p style={{ fontSize: 13, color: '#94a3b8' }}>Convert a video above to stream and download your MP3s.</p>
+        <div style={{ padding: 40, textAlign: 'center', color: '#71717a', background: '#ffffff', borderRadius: 16, border: '1px dashed #e4e4e7' }}>
+          <Music size={32} style={{ margin: '0 auto 12px', display: 'block', color: '#a1a1aa' }} />
+          <p style={{ fontWeight: 600, color: '#09090b' }}>No songs converted yet.</p>
+          <p style={{ fontSize: 13, color: '#71717a' }}>Convert a video above to stream and download your MP3s.</p>
         </div>
       ) : (
         <div className="history-grid-list">
@@ -54,8 +56,8 @@ export const RecentDownloadsGrid: React.FC<RecentDownloadsGridProps> = ({ files,
                         width: 44,
                         height: 44,
                         borderRadius: 12,
-                        backgroundColor: isPlaying ? '#2563eb' : '#f1f5f9',
-                        color: isPlaying ? '#ffffff' : '#2563eb',
+                        backgroundColor: isPlaying ? '#e50914' : '#fef2f2',
+                        color: isPlaying ? '#ffffff' : '#e50914',
                         border: 'none',
                         display: 'flex',
                         alignItems: 'center',
@@ -63,7 +65,7 @@ export const RecentDownloadsGrid: React.FC<RecentDownloadsGridProps> = ({ files,
                         cursor: 'pointer',
                         flexShrink: 0,
                         transition: 'all 0.2s ease',
-                        boxShadow: isPlaying ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
+                        boxShadow: isPlaying ? '0 4px 12px rgba(229, 9, 20, 0.3)' : 'none'
                       }}
                       title={isPlaying ? "Pause Song" : "Play Song Online"}
                     >
@@ -88,7 +90,7 @@ export const RecentDownloadsGrid: React.FC<RecentDownloadsGridProps> = ({ files,
 
                 {/* Inline Audio Player Bar when Playing */}
                 {isPlaying && (
-                  <div style={{ paddingTop: 8, borderTop: '1px solid #f1f5f9' }}>
+                  <div style={{ paddingTop: 8, borderTop: '1px solid #f4f4f5' }}>
                     <audio
                       controls
                       autoPlay

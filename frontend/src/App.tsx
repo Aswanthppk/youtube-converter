@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { ConverterWidget } from './components/ConverterWidget';
 import { RecentDownloadsGrid, HistoryFile } from './components/RecentDownloadsGrid';
@@ -6,23 +6,36 @@ import { FeatureGrid } from './components/FeatureGrid';
 import { Play } from 'lucide-react';
 
 export function App() {
-  const [historyFiles, setHistoryFiles] = useState<HistoryFile[]>([]);
-
-  const fetchHistory = async () => {
+  const [historyFiles, setHistoryFiles] = useState<HistoryFile[]>(() => {
     try {
-      const res = await fetch('/api/history');
-      const data = await res.json();
-      if (data.success && data.files) {
-        setHistoryFiles(data.files);
-      }
-    } catch (err) {
-      console.warn("Failed to load history list", err);
+      const saved = sessionStorage.getItem('user_conversions');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
+  });
+
+  const handleConversionSuccess = (newFile: HistoryFile) => {
+    setHistoryFiles((prev) => {
+      const filtered = prev.filter((f) => f.filename !== newFile.filename);
+      const updated = [newFile, ...filtered];
+      try {
+        sessionStorage.setItem('user_conversions', JSON.stringify(updated));
+      } catch {
+        // ignore storage errors
+      }
+      return updated;
+    });
   };
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  const handleClearHistory = () => {
+    setHistoryFiles([]);
+    try {
+      sessionStorage.removeItem('user_conversions');
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   return (
     <div className="app-container">
@@ -49,18 +62,18 @@ export function App() {
               Start Converting
             </a>
             <a href="#history" className="btn btn-outline btn-pill" style={{ padding: '14px 28px' }}>
-              <Play size={16} style={{ color: '#2563eb', fill: 'currentColor' }} /> Listen to Music
+              <Play size={16} style={{ color: '#e50914', fill: 'currentColor' }} /> Listen to Music
             </a>
           </div>
 
           {/* Main Converter Card */}
           <div id="converter" style={{ marginTop: '24px' }}>
-            <ConverterWidget onConversionSuccess={fetchHistory} />
+            <ConverterWidget onConversionSuccess={handleConversionSuccess} />
           </div>
         </div>
 
         {/* Recent Song Conversions List with Song Playback */}
-        <RecentDownloadsGrid files={historyFiles} onRefresh={fetchHistory} />
+        <RecentDownloadsGrid files={historyFiles} onClear={handleClearHistory} />
 
         {/* Features Grid */}
         <FeatureGrid />
